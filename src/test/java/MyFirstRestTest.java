@@ -120,5 +120,43 @@ public class MyFirstRestTest {
         assertEquals (description, fetchedDescription);
         assertEquals (isbn, fetchedIsbn);
     }
+    
+    @Test
+    public void testDeleteABook(){
+        String resourceName = "books";
+                
+        //9 - Delete method will need the creation of a book first. We create a book exactly as we created the book in 8       
+        String title = UUID.randomUUID().toString();
+        String description = UUID.randomUUID().toString();
+        String isbn = UUID.randomUUID().toString();
+               
+        String postBodyTemplate = ""
+                + "{\n" +
+                "\"book\":\n" +
+                "  {\n" +
+                "    \"description\":\"%s\",\n" +
+                "    \"isbn\":\"%s\",\n" +
+                "    \"nbOfPage\":411,\n" +
+                "    \"title\":\"%s\"\n" +
+                "  }\n" +
+                "}";
+        
+        String postBody = String.format(postBodyTemplate, description,isbn,title);
+
+        Response postResponse = given().contentType(ContentType.JSON).body(postBody).post(BASE_URL +resourceName);
+        assertEquals("Post response should have status code 201",201,postResponse.statusCode());
+        
+        // In order to proceed with the deletion of the book, we need to find it first and we use the 
+        Response getResponse = given().accept(ContentType.JSON).get(BASE_URL + resourceName);
+        int fetchedId = getResponse.jsonPath().getInt("books.book[-1].id");
+        
+        String deleteResourceName = "books/"+fetchedId;
+        Response deleteResponse = delete(BASE_URL+deleteResourceName);
+        assertEquals("Delete method should return 204",204,deleteResponse.statusCode());
+            
+        //double checking that the book was deleted.
+        Response getDeletedBookResponse = get(BASE_URL + deleteResourceName);
+        assertEquals("Fetching deleted book should return 404",404,getDeletedBookResponse.statusCode());
+    }
   
 }
