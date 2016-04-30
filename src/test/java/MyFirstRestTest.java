@@ -9,6 +9,7 @@ import org.junit.Test;
 import static com.jayway.restassured.RestAssured.*;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
+import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -61,6 +62,63 @@ public class MyFirstRestTest {
         System.out.println("Status code: "+ response.statusCode()); //printing the statuscode.
         assertEquals("Status code should be 404",404, response.statusCode());
         
+    }
+    
+    @Test
+    public void testAddNewBook(){
+        String resourceName = "books";
+        //7 - Make a post request to insert a book and include an assertion to assert that the creation was successfull.
+        //With a static check for the assertion, which is not nice.
+        //String postBody = ""
+        //        + "{\n" +
+        //        "\"book\":\n" +
+        //        "  {\n" +
+        //        "    \"description\":\"The novel focuses on a post-apocalyptic character named Snowman, living near a group of primitive human-like creatures whom he calls Crakers.\",\n" +
+        //        "    \"isbn\":\"0-7710-0868-6\",\n" +
+        //        "    \"nbOfPage\":411,\n" +
+        //         "    \"title\":\"Oryx and Crake\"\n" +
+        //        "  }\n" +
+        //        "}";
+
+        //Response postResponse = given().contentType(ContentType.JSON).body(postBody).post(BASE_URL +resourceName);
+        //assertEquals("Post response should have status code 201",201,postResponse.statusCode());
+        
+        //Response getResponse = given().accept(ContentType.JSON).get(BASE_URL + resourceName);
+        //String fetchedTitle = getResponse.jsonPath().getString("books.book[-1].title"); //getting the last book created on the list with jsonPath
+        //assertEquals ("Oryx and Crake", fetchedTitle);
+                
+        
+        
+        //8 - Make a post request to insert a book and include an assertion to assert that the creation was successfull.
+        //Similar to 7, but in this version we are using values for title, description and isbn that are randomly generated.        
+        String title = UUID.randomUUID().toString();
+        String description = UUID.randomUUID().toString();
+        String isbn = UUID.randomUUID().toString();
+               
+        String postBodyTemplate = ""
+                + "{\n" +
+                "\"book\":\n" +
+                "  {\n" +
+                "    \"description\":\"%s\",\n" +
+                "    \"isbn\":\"%s\",\n" +
+                "    \"nbOfPage\":411,\n" +
+                "    \"title\":\"%s\"\n" +
+                "  }\n" +
+                "}";
+        
+        String postBody = String.format(postBodyTemplate, description,isbn,title);
+
+        Response postResponse = given().contentType(ContentType.JSON).body(postBody).post(BASE_URL +resourceName);
+        assertEquals("Post response should have status code 201",201,postResponse.statusCode());
+        
+        Response getResponse = given().accept(ContentType.JSON).get(BASE_URL + resourceName).prettyPeek();
+        String fetchedTitle = getResponse.jsonPath().getString("books.book[-1].title");
+        String fetchedDescription = getResponse.jsonPath().getString("books.book[-1].description");
+        String fetchedIsbn = getResponse.jsonPath().getString("books.book[-1].isbn");      
+        
+        assertEquals (title, fetchedTitle);
+        assertEquals (description, fetchedDescription);
+        assertEquals (isbn, fetchedIsbn);
     }
   
 }
